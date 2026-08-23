@@ -1,44 +1,97 @@
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ShadingType, BorderStyle, AlignmentType, PageBreak } = require("docx");
 const fs = require("fs");
 
+// Dark Green Color Palette Constants
+const COLORS = {
+  PRIMARY_DARK: "004D40",    // Deep Forest Green for H1 & Main Title
+  PRIMARY_MEDIUM: "0E6251",  // Medium Dark Green for H2
+  ACCENT_MUTED: "117A65",    // Dark Teal/Green for Notes & Accents
+  TBL_HEADER_BG: "E8F8F5",   // Light Mint Green for Table Headers
+  CODE_BG: "F2F4F4",         // Light Neutral Gray for Code Blocks
+  BORDER_GRAY: "BDC3C7",     // Light Gray for Table/HR Borders
+  TEXT_MAIN: "2C3E50",       // Dark Slate Text
+  TEXT_MUTED: "566573"      // Subtitle Gray
+};
+
 function H1(text) {
-  return new Paragraph({ text, heading: HeadingLevel.HEADING_1, spacing: { before: 300, after: 150 } });
+  return new Paragraph({ 
+    children: [new TextRun({ text, bold: true, color: COLORS.PRIMARY_DARK, size: 30 })], 
+    heading: HeadingLevel.HEADING_1, 
+    spacing: { before: 360, after: 140 } 
+  });
 }
+
 function H2(text) {
-  return new Paragraph({ text, heading: HeadingLevel.HEADING_2, spacing: { before: 220, after: 100 } });
+  return new Paragraph({ 
+    children: [new TextRun({ text, bold: true, color: COLORS.PRIMARY_MEDIUM, size: 24 })], 
+    heading: HeadingLevel.HEADING_2, 
+    spacing: { before: 240, after: 100 } 
+  });
 }
+
 function P(text, opts = {}) {
-  return new Paragraph({ children: [new TextRun({ text, ...opts })], spacing: { after: 120 } });
+  return new Paragraph({ 
+    children: [new TextRun({ text, color: COLORS.TEXT_MAIN, ...opts })], 
+    spacing: { after: 120, line: 276 } 
+  });
 }
+
 function Bullet(text, opts = {}) {
-  return new Paragraph({ children: [new TextRun({ text, ...opts })], bullet: { level: 0 }, spacing: { after: 80 } });
+  return new Paragraph({ 
+    children: [new TextRun({ text, color: COLORS.TEXT_MAIN, ...opts })], 
+    bullet: { level: 0 }, 
+    spacing: { after: 80 } 
+  });
 }
+
 function Mono(text) {
   return new Paragraph({
-    children: [new TextRun({ text, font: "Consolas", size: 22 })],
-    spacing: { after: 100 },
-    shading: { type: ShadingType.CLEAR, fill: "F2F2F2" },
-    indent: { left: 200 },
+    children: [new TextRun({ text, font: "Consolas", size: 20, color: "1C2833" })],
+    spacing: { before: 100, after: 100 },
+    shading: { type: ShadingType.CLEAR, fill: COLORS.CODE_BG },
+    indent: { left: 240 },
+    border: { left: { color: COLORS.PRIMARY_MEDIUM, space: 4, style: BorderStyle.SINGLE, size: 12 } }
   });
 }
+
 function Note(text) {
   return new Paragraph({
-    children: [new TextRun({ text: "Correction / Note: ", bold: true, color: "B00020" }), new TextRun({ text, italics: true, color: "B00020" })],
-    spacing: { after: 150 },
-    border: { left: { color: "B00020", space: 4, style: BorderStyle.SINGLE, size: 12 } },
-    indent: { left: 200 },
+    children: [
+      new TextRun({ text: "Correction / Note: ", bold: true, color: COLORS.ACCENT_MUTED }), 
+      new TextRun({ text, italics: true, color: COLORS.ACCENT_MUTED })
+    ],
+    spacing: { before: 120, after: 150 },
+    border: { left: { color: COLORS.ACCENT_MUTED, space: 6, style: BorderStyle.SINGLE, size: 18 } },
+    indent: { left: 240 },
   });
 }
+
 function HR() {
-  return new Paragraph({ text: "", border: { bottom: { color: "999999", space: 1, style: BorderStyle.SINGLE, size: 6 } }, spacing: { after: 200 } });
+  return new Paragraph({ 
+    text: "", 
+    border: { bottom: { color: COLORS.BORDER_GRAY, space: 1, style: BorderStyle.SINGLE, size: 6 } }, 
+    spacing: { before: 150, after: 200 } 
+  });
 }
+
 function cell(text, opts = {}) {
   return new TableCell({
     width: { size: opts.width || 2500, type: WidthType.DXA },
-    shading: opts.header ? { type: ShadingType.CLEAR, fill: "D9E2F3" } : undefined,
-    children: [new Paragraph({ children: [new TextRun({ text, bold: !!opts.header })] })],
+    shading: opts.header ? { type: ShadingType.CLEAR, fill: COLORS.TBL_HEADER_BG } : undefined,
+    children: [
+      new Paragraph({ 
+        children: [
+          new TextRun({ 
+            text, 
+            bold: !!opts.header, 
+            color: opts.header ? COLORS.PRIMARY_DARK : COLORS.TEXT_MAIN 
+          })
+        ] 
+      })
+    ],
   });
 }
+
 function table(colWidths, rows) {
   return new Table({
     columnWidths: colWidths,
@@ -109,8 +162,8 @@ const doc = new Document({
     {
       properties: { page: { size: { width: 12240, height: 15840 } } },
       children: [
-        new Paragraph({ children: [new TextRun({ text: "Computer Architecture", bold: true, size: 44 })], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
-        new Paragraph({ children: [new TextRun({ text: "Complete Notes: Digital Logic Components, Registers, Shift Registers & Register Transfer", italics: true, size: 26, color: "444444" })], alignment: AlignmentType.CENTER, spacing: { after: 400 } }),
+        new Paragraph({ children: [new TextRun({ text: "Computer Architecture", bold: true, size: 44, color: COLORS.PRIMARY_DARK })], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
+        new Paragraph({ children: [new TextRun({ text: "Complete Notes: Digital Logic Components, Registers, Shift Registers & Register Transfer", italics: true, size: 24, color: COLORS.TEXT_MUTED })], alignment: AlignmentType.CENTER, spacing: { after: 400 } }),
 
         H1("1. Integrated Circuit (IC)"),
         P("An Integrated Circuit (IC) is a miniature electronic circuit fabricated on a single chip of semiconductor material (usually silicon). It combines transistors, resistors, gates, and other components into one small package."),
@@ -323,8 +376,7 @@ const doc = new Document({
   ],
 });
 
-
 Packer.toBuffer(doc).then((buffer) => {
-    fs.writeFileSync('Computer_Architecture_Full_Notes.docx', buffer);
-    console.log("done");
+  fs.writeFileSync('Computer_Architecture_Full_Notes.docx', buffer);
+  console.log("done");
 });
